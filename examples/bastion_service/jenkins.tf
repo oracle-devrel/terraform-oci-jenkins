@@ -1,9 +1,10 @@
-## Copyright (c) 2021, Oracle and/or its affiliates.
+## Copyright (c) 2022, Oracle and/or its affiliates.
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
-# ------------------------------------------------------------------------------
-# Setup Bastion Service
-# ------------------------------------------------------------------------------
+resource "tls_private_key" "public_private_key_pair" {
+  algorithm = "RSA"
+}
+
 resource "oci_bastion_bastion" "bastion-service" {
   bastion_type                 = "STANDARD"
   compartment_id               = var.compartment_ocid
@@ -13,9 +14,6 @@ resource "oci_bastion_bastion" "bastion-service" {
   max_session_ttl_in_seconds   = 1800
 }
 
-# ------------------------------------------------------------------------------
-# DEPLOY THE JENKINS CLUSTER
-# ------------------------------------------------------------------------------
 module "jenkins" {
   source                       = "github.com/oracle-devrel/terraform-oci-jenkins"
   compartment_ocid             = var.compartment_ocid
@@ -35,13 +33,13 @@ module "jenkins" {
   agent_shape                  = var.agent_shape
   agent_flex_shape_ocpus       = var.agent_flex_shape_ocpus
   agent_flex_shape_memory      = var.agent_flex_shape_memory
-  ssh_authorized_keys          = file(var.ssh_authorized_keys)
-  ssh_private_key              = file(var.ssh_private_key)
+  ssh_authorized_keys          = tls_private_key.public_private_key_pair.public_key_openssh
+  ssh_private_key              = tls_private_key.public_private_key_pair.private_key_pem
   use_bastion_service          = true
   bastion_service_id           = oci_bastion_bastion.bastion-service.id
   bastion_service_region       = var.region
   bastion_host                 = ""
-  bastion_private_key          = file(var.bastion_private_key)
-  bastion_authorized_keys      = file(var.bastion_authorized_keys)
+  bastion_private_key          = tls_private_key.public_private_key_pair.private_key_pem
+  bastion_authorized_keys      = tls_private_key.public_private_key_pair.public_key_openssh
 }
 

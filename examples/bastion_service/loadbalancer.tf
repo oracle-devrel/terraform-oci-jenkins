@@ -1,4 +1,4 @@
-## Copyright (c) 2021, Oracle and/or its affiliates.
+## Copyright (c) 2022, Oracle and/or its affiliates.
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 ############################################
@@ -23,7 +23,6 @@ resource "oci_load_balancer" "JenkinsLB" {
 
   subnet_ids = [
     oci_core_subnet.JenkinsLBSubnet1.id,
-    #    oci_core_subnet.JenkinsLBSubnet2.id,
   ]
 
   display_name = "JenkinsLB"

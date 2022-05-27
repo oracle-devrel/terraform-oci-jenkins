@@ -76,6 +76,26 @@ resource "oci_core_instance" "TFJenkinsController" {
   }
 }
 
+data "oci_computeinstanceagent_instance_agent_plugins" "TFJenkinsController_agent_plugin_bastion" {
+  count            = var.use_bastion_service ? 1 : 0
+  compartment_id   = var.compartment_ocid
+  instanceagent_id = oci_core_instance.TFJenkinsController.id
+  name             = "Bastion"
+  status           = "RUNNING"
+}
+
+resource "time_sleep" "TFJenkinsController_agent_checker" {
+  depends_on      = [oci_core_instance.TFJenkinsController]
+  count           = var.use_bastion_service ? 1 : 0
+  create_duration = "60s"
+
+  triggers = {
+    changed_time_stamp = length(data.oci_computeinstanceagent_instance_agent_plugins.TFJenkinsController_agent_plugin_bastion) != 0 ? 0 : timestamp()
+    instance_ocid  = oci_core_instance.TFJenkinsController.id
+    private_ip     = oci_core_instance.TFJenkinsController.private_ip
+  }
+}
+
 resource "oci_bastion_session" "ssh_via_bastion_service" {
   count      = var.use_bastion_service ? 1 : 0
   bastion_id = var.bastion_service_id
@@ -86,10 +106,11 @@ resource "oci_bastion_session" "ssh_via_bastion_service" {
 
   target_resource_details {
     session_type                               = "MANAGED_SSH"
-    target_resource_id                         = oci_core_instance.TFJenkinsController.id
+    target_resource_id                         = time_sleep.TFJenkinsController_agent_checker[count.index].triggers["instance_ocid"]
     target_resource_operating_system_user_name = "opc"
     target_resource_port                       = 22
-    target_resource_private_ip_address         = oci_core_instance.TFJenkinsController.private_ip
+    target_resource_private_ip_address         = time_sleep.TFJenkinsController_agent_checker[count.index].triggers["private_ip"]
+
   }
 
   display_name           = "ssh_via_bastion_service"

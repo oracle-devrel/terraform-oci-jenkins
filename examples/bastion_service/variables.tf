@@ -1,4 +1,4 @@
-## Copyright (c) 2021, Oracle and/or its affiliates.
+## Copyright (c) 2022, Oracle and/or its affiliates.
 ## All rights reserved. The Universal Permissive License (UPL), Version 1.0 as shown at http://oss.oracle.com/licenses/upl
 
 variable "tenancy_ocid" {}
@@ -7,8 +7,6 @@ variable "fingerprint" {}
 variable "private_key_path" {}
 variable "region" {}
 variable "compartment_ocid" {}
-variable "ssh_authorized_keys" {}
-variable "ssh_private_key" {}
 
 variable "vcn_cidr" {
   default = "10.0.0.0/16"
@@ -94,12 +92,6 @@ variable "agent_flex_shape_ocpus" {
 variable "agent_flex_shape_memory" {
   description = "Amount of Flex shape Memory in GB"
   default     = 10
-}
-
-variable "bastion_private_key" {
-}
-
-variable "bastion_authorized_keys" {
 }
 
 variable "listener_ca_certificate" {
